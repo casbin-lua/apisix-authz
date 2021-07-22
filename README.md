@@ -1,5 +1,8 @@
 # apisix-authz
 
+[![GitHub Action](https://github.com/casbin-lua/apisix-authz/workflows/test/badge.svg?branch=master)](https://github.com/casbin-lua/apisix-authz/actions)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/casbin/lobby)
+
 apisix-authz is an authorization plugin for APISIX based on [lua-casbin](https://github.com/casbin/lua-casbin/).
 
 ## Installation
@@ -100,6 +103,78 @@ The authorization determines a request based on `{subject, object, action}`, whi
 2. `object`: the URL path for the web resource like "dataset1/item1"
 3. `action`: HTTP method like GET, POST, PUT, DELETE, or the high-level actions you defined like "read-file", "write-blog"
 For how to write authorization policy and other details, please refer to the [Casbin's documentation](https://casbin.org/).
+
+## Example
+
+An example of policy file and model file is given in the [examples](https://github.com/casbin-lua/apisix-authz/tree/master/examples) directory of this repo. 
+
+The example model file is:
+```
+[request_definition]
+r = sub, obj, act
+
+[policy_definition]
+p = sub, obj, act
+
+[role_definition]
+g = _, _
+
+[policy_effect]
+e = some(where (p.eft == allow))
+
+[matchers]
+m = (g(r.sub, p.sub) || keyMatch(r.sub, p.sub)) && keyMatch(r.obj, p.obj) && keyMatch(r.act, p.act)
+```
+
+And the example policy file is:
+```
+p, *, /, GET
+p, admin, *, *
+g, alice, admin
+```
+
+This means that all users can access the homepage `/` but only users with admin permissions like alice can access other pages and other HTTP request methods.
+
+Now if you send a request (using the example model/policy files) as:
+```
+curl http://127.0.0.1:9080/apisix/admin/routes/1 -H 'X-API-KEY: edd1c9f034335f136f87ad84b625c8f1' -X PUT -d '
+{
+    "uri": "/*",
+    "plugins": {
+        "apisix-authz": {
+            "model_path": "/path/to/authz_model.conf",
+            "policy_path": "/path/to/authz_policy.csv",
+            "username": "user"
+        }
+    },
+    "upstream": {
+        "type": "roundrobin",
+        "nodes": {
+            "example.com": 1
+        }
+    },
+    "host": "example.com"
+}'
+```
+
+This will configure model and policy on this route on all URIs (`/*`). Now if you send a request for the first time as:
+```
+curl -i -X GET \
+  --url http://127.0.0.1:9080/ \
+  --header 'user: anonymous' \
+  --header 'host: example.com'
+```
+
+When run for the first time, it will create a Casbin Enforcer using the model path and policy path. If this returns a 200 (OK) status code, then the configuration is good to go otherwise please check the error.log file in your logs directory of APISIX.
+
+But if you the send request as:
+```
+curl -i -X POST \
+  --url http://127.0.0.1:9080/ \
+  --header 'user: anonymous' \
+  --header 'host: example.com'
+```
+This will result in a 403 error, since as per the policy configuration any non-admin user can not use any non-GET request methods. If you change the 'user' header to alice, this will be an authorized request then.
 
 ## Getting Help
 
