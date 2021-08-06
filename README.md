@@ -1,3 +1,5 @@
+# Use this instead: https://github.com/apache/apisix/blob/master/docs/en/latest/plugins/authz-casbin.md
+
 # apisix-authz
 
 [![GitHub Action](https://github.com/casbin-lua/apisix-authz/workflows/test/badge.svg?branch=master)](https://github.com/casbin-lua/apisix-authz/actions)
