@@ -3,7 +3,7 @@
 # apisix-authz
 
 [![GitHub Action](https://github.com/casbin-lua/apisix-authz/workflows/test/badge.svg?branch=master)](https://github.com/casbin-lua/apisix-authz/actions)
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/casbin/lobby)
+[![Discord](https://img.shields.io/discord/1022748306096537660?logo=discord&label=discord&color=5865F2)](https://discord.gg/S5UjpzGZjN)
 
 apisix-authz is an authorization plugin for APISIX based on [lua-casbin](https://github.com/casbin/lua-casbin/).
 
